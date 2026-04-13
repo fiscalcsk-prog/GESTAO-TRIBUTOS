@@ -466,7 +466,7 @@ export default function App() {
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-                className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mb-6 shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
+                className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-[41px] flex items-center justify-center mb-6 shadow-[0_10px_20px_rgba(37,99,235,0.3)]"
               >
                 <Lock className="w-8 h-8 text-white" />
               </motion.div>
