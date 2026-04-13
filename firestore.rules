@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: clients
+    // Fields:
+    //   - name: string (required)
+    //   - cnpj: string (required)
+    //   - ccm: string
+    //   - city: string
+    //   - accessType: string
+    //   - accessLink: string
+    //   - login: string
+    //   - password: string
+    //   - active: bool
+    //   - createdAt: timestamp
+    //
+    // Collection: monthly_status
+    // Fields:
+    //   - clientId: string (required)
+    //   - year: int (required)
+    //   - month: int (required)
+    //   - movi: string (yes/no/pending/attention)
+    //   - servPrest: string (yes/no/pending/attention)
+    //   - servTomad: string (yes/no/pending/attention)
+    //   - pisCofins: string (yes/no/pending/attention)
+    //   - irpjCsll: string (yes/no/pending/attention)
+    //   - iss: string (yes/no/pending/attention)
+    //   - debitos: string (yes/no/pending/attention)
+    //
+    // Collection: periods
+    // Fields:
+    //   - closed: bool (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+             (
+               request.auth.token.email.lower() == "fiscal.csk@gmail.com" ||
+               request.auth.token.email.lower() == "david.fiscal@ecmpcontabilidade.com.br" ||
+               request.auth.token.email.lower().endsWith("@csk.local") ||
+               (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+             );
+    }
+
+    function isValidClient(data) {
+      return data.keys().hasAll(['name', 'cnpj']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.cnpj is string && data.cnpj.size() > 0 && data.cnpj.size() < 20 &&
+             (!('ccm' in data) || (data.ccm is string && data.ccm.size() < 50)) &&
+             (!('city' in data) || (data.city is string && data.city.size() < 100)) &&
+             (!('accessType' in data) || (data.accessType is string && data.accessType.size() < 50)) &&
+             (!('accessLink' in data) || (data.accessLink is string && data.accessLink.size() < 500)) &&
+             (!('login' in data) || (data.login is string && data.login.size() < 100)) &&
+             (!('password' in data) || (data.password is string && data.password.size() < 100));
+    }
+
+    function isValidStatus(data) {
+      let validStatuses = ['yes', 'no', 'pending', 'attention'];
+      return data.keys().hasAll(['clientId', 'year', 'month']) &&
+             data.clientId is string && data.clientId.size() < 100 &&
+             (data.year is int || data.year is float || data.year is number) &&
+             (data.month is int || data.month is float || data.month is number) &&
+             (!('movi' in data) || data.movi in validStatuses) &&
+             (!('servPrest' in data) || data.servPrest in validStatuses) &&
+             (!('servTomad' in data) || data.servTomad in validStatuses) &&
+             (!('pisCofins' in data) || data.pisCofins in validStatuses) &&
+             (!('irpjCsll' in data) || data.irpjCsll in validStatuses) &&
+             (!('iss' in data) || data.iss in validStatuses) &&
+             (!('debitos' in data) || data.debitos in validStatuses) &&
+             (!('hidden' in data) || data.hidden is bool);
+    }
+
+    function isValidPeriod(data) {
+      return data.keys().hasAll(['closed']) &&
+             data.closed is bool;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /clients/{clientId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidClient(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /monthly_status/{statusId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidStatus(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /periods/{periodId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidPeriod(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

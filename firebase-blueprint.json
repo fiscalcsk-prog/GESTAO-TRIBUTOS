@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "Client": {
+      "title": "Client",
+      "description": "A client of the accounting firm.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Razão Social" },
+        "cnpj": { "type": "string", "description": "CNPJ" },
+        "ccm": { "type": "string", "description": "CCM" },
+        "city": { "type": "string", "description": "Município" },
+        "accessType": { "type": "string", "description": "Tipo de Acesso" },
+        "accessLink": { "type": "string", "description": "Link de Acesso" },
+        "login": { "type": "string", "description": "Login" },
+        "password": { "type": "string", "description": "Senha" },
+        "active": { "type": "boolean", "description": "Whether the client is currently active" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "cnpj"]
+    },
+    "MonthlyStatus": {
+      "title": "Monthly Status",
+      "description": "Status of accounting obligations for a client in a specific month.",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "year": { "type": "number" },
+        "month": { "type": "number" },
+        "movi": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of MOVI" },
+        "servPrest": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of SERV.PREST" },
+        "servTomad": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of SERV.TOMAD" },
+        "pisCofins": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of PIS/COFINS" },
+        "irpjCsll": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of IRPJ/CSLL" },
+        "iss": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "Status of ISS" },
+        "debitos": { "type": "string", "enum": ["yes", "no", "pending", "attention"], "description": "DÉBITOS info" }
+      },
+      "required": ["clientId", "year", "month"]
+    },
+    "Period": {
+      "title": "Period",
+      "description": "A fiscal period (month/year) and its status.",
+      "type": "object",
+      "properties": {
+        "closed": { "type": "boolean", "description": "Whether the period is closed for editing" }
+      },
+      "required": ["closed"]
+    }
+  },
+  "firestore": {
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Collection of accounting clients"
+    },
+    "/monthly_status/{statusId}": {
+      "schema": "MonthlyStatus",
+      "description": "Status records for clients per month. statusId is typically {clientId}_{year}_{month}"
+    },
+    "/periods/{periodId}": {
+      "schema": "Period",
+      "description": "Collection of fiscal periods. periodId is typically {year}_{month}"
+    }
+  }
+}
