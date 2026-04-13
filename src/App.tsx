@@ -536,7 +536,7 @@ export default function App() {
           </div>
           
           <p className="mt-8 text-center text-[10px] text-gray-600 font-bold uppercase tracking-[0.3em]">
-            © {new Date().getFullYear()} CSK Corporativo
+            © {new Date().getFullYear()} ECMP Contabilidade
           </p>
         </motion.div>
       </div>
